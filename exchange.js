@@ -1,7 +1,6 @@
 'use strict';
 require('dotenv').config();
-const CCXT = require('ccxt');
-const fs = require('fs').promises;
+const fs = require('fs');
 
 /**
  * return api key and secret 
@@ -10,22 +9,28 @@ const fs = require('fs').promises;
  * @param {String} path path to the api key and secret file
  * @param {String} exchange exchange name
  */
-const setKeys = async(path, exchange) => {
-    try {
-        const config = JSON.parse(await fs.readFile(path));
-        return {
-            'APIKEY': config[exchange.toUpperCase()]['APIKEY'],
-            'APISECRET': config[exchange.toUpperCase()]['APISECRET']
-        }
+const setKeys = (path, exchange) => {
+    if (process.env.APIKEY == undefined || process.env.APISECRET == undefined) throw Error("NO_APIKEY")
+    return {
+        'APIKEY': process.env.APIKEY,
+        'APISECRET': process.env.APISECRET
     }
-    catch (err) {
-        console.log(err);
-        if (process.env.APIKEY == undefined || process.env.APISECRET == undefined) throw Error("NO_APIKEY")
-        else return {
-            'APIKEY': process.env.APIKEY,
-            'APISECRET': process.env.APISECRET
-        }
-    }
+    // try {
+    //     const json = await fs.readFile(path);
+    //     const config = JSON.parse(json);
+    //     return {
+    //         'APIKEY': config[exchange.toUpperCase()]['APIKEY'],
+    //         'APISECRET': config[exchange.toUpperCase()]['APISECRET']
+    //     }
+    // }
+    // catch (err) {
+    //     console.log(err);
+    //     if (process.env.APIKEY == undefined || process.env.APISECRET == undefined) throw Error("NO_APIKEY")
+    //     else return {
+    //         'APIKEY': process.env.APIKEY,
+    //         'APISECRET': process.env.APISECRET
+    //     }
+    // }
 }
 
 /**
@@ -35,7 +40,7 @@ const setKeys = async(path, exchange) => {
  * @param {String} exchangeId exchange name
  * @return {CCXT.EXCHANGE} exchange
  */
-const initExchange = (ccxt, path, exchangeId) => {
+const initExchange = (ccxt, path = undefined, exchangeId) => {
     //   const exName = process.argv[2] === 'production' ? 'ftx' : 'bitmex';
     const keys = setKeys(path, exchangeId);
     const exchange = new ccxt[exchangeId.toLowerCase()]({
@@ -48,15 +53,11 @@ const initExchange = (ccxt, path, exchangeId) => {
     if (exchangeId.toUpperCase() == 'BITMEX') {
         exchange.urls['api'] = exchange.urls['test'];
     }
-    exchange.urls['api'] = (exchangeId.toUpperCase() != 'BITMEX') && exchange.urls['test'];
-
+    // exchange.urls['api'] = (exchangeId.toUpperCase() != 'BITMEX') && exchange.urls['test'];
     return exchange
 }
 
-const CONFIG_PATH = 'config.json';
-const exchange = initExchange(CCXT, CONFIG_PATH, 'ftx');
-
-module.exports = { initExchange, exchange }
+module.exports = { initExchange }
 
 // module.exports = ( function (path, exchangeId) {
 //     //   const exName = process.argv[2] === 'production' ? 'ftx' : 'bitmex';
