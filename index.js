@@ -26,9 +26,13 @@ const row = [];
     const wallet = (await exchange.fetchBalance()).total
     console.log('wallet :>> ', wallet);
 
-    const label = sheetAPI(get, getRequest);
+     sheetAPI(append, request);
+    const label = await sheetAPI(get, getRequest);
     console.log('label :>> ', label);
 
+    setTimeout(() => {
+        console.log('settimeout');
+    }, 3000);
 
 
 })()
