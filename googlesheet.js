@@ -3,9 +3,14 @@ require('dotenv').config();
 const readline = require('readline');
 const { google } = require('googleapis');
 
+// If modifying these scopes, delete token.json.
+// https://www.googleapis.com/auth/spreadsheets.readonly
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 const TOKEN_PATH = 'token.json'
 const CREDENTIALS_PATH = 'credentials.json'
+
+// const authClient = await auth.getClient();
+// google.options({ auth: authClient });
 
 /**
  * write the param *values* to a google spread sheet
@@ -74,8 +79,17 @@ function getNewToken(oAuth2Client, callback) {
  * @param {google.auth.OAuth2} auth The authenticated Google OAuth client.
  * @param {string[]} values  The data to be written. Each item in the inner array corresponds with one cell.
  */
-async function append(auth, request) {
+async function appendValues(auth, request) {
     const sheets = google.sheets({ version: 'v4', auth });
+    // const request = {
+    //     spreadsheetId: process.env.spreadsheetId,
+    //     range: range,
+    //     insertDataOption: 'INSERT_ROWS',
+    //     valueInputOption: 'USER_ENTERED',
+    //     resource: {
+    //         values: values
+    //     }
+    // }
     try {
         const response = (await sheets.spreadsheets.values.append(request)).data;
         console.log(JSON.stringify(response, null, 2));
@@ -95,16 +109,106 @@ async function batchUpdate(auth, request) {
 }
 
 const range = 'Wallet!B1:E';
-
-// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatecellsrequest
-const appendRequest = {
-    spreadsheetId: process.env.spreadsheetId,
-    range: range,
-    insertDataOption: 'INSERT_ROWS',
-    valueInputOption: 'USER_ENTERED',
-    resource: {
-        values: [[Date.now(), 1, 2, 5, 0]]
+const requestsBody = [];
+const samplevalues = [0, 0, 0, 0]
+const spreadsheetId = process.env.spreadsheetId;
+const moveRequest = {
+    moveDimension: {
+        source: {
+            sheetId: process.env.spreadsheetId,
+            dimension: "ROWS",
+            startIndex: 0,
+        },
+        destinationIndex: 1
     }
 }
-module.exports = { writeToGS, append, }
+const writeRequest = {
+    spreadsheetId: process.env.spreadsheetId,
+    range: range,
+    resource: {
+        valueInputOption: "USER_ENTERED",
+        data: [['hoge', 'hoge', 'ge', 'e']]
+    },
+}
+const cellsUpdateRequest = {
+    "updateCells": {
+        "rows": [samplevalues],
+        "fields": "*",
+        // Union field area can be only one of the following:
+        "range": range
+    }
+};
 
+//Inserts cells into a range, shifting the existing cells over or down.
+const insertRangeRequest = {
+    "insertRange": {
+        "range": {
+            "sheetId": 0,
+            "startRowIndex": 1,
+            "endRowIndex": 2,
+            // "startColumnIndex": 1,
+        },
+        "shiftDimension": 1
+    }
+}
+const insertDimention = {
+    "insertDimension": {
+        "range": {
+            "sheetId": 0,
+            "dimension": "ROWS",
+            "startIndex": 0,
+            "endIndex": 3
+        },
+        "inheritFromBefore": false
+    }
+} ;
+// End of list of possible types for union field area.
+// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatecellsrequest
+// requestsBody.push(moveRequest);
+requestsBody.push(cellsUpdateRequest);
+const batchUpdateRequest = { requestsBody };
+const data = [
+    {
+        "range": "Wallet!B2:E",
+        "majorDimension": "ROWS",
+        "values": [[11, 2, 5, 0]]
+    }
+];
+(() => {
+    // writeToGS(batchUpdate, data)
+    // writeToGS(appendValues, [[11111, 11111, 3, 11111]])
+    // writeToGS(   batchUpdate,batchUpdateRequest)
+    const req = {
+        spreadsheetId: process.env.spreadsheetId,
+        requestsBody: batchUpdateRequest,
+    };
+    const req2 = {
+        spreadsheetId: process.env.spreadsheetId,
+        requests: [insertDimention]
+    };
+    const req3 = {
+        spreadsheetId: process.env.spreadsheetId,
+        resource: { data },
+    };
+    writeToGS(batchUpdate, req2)
+    // console.log('req2 :>> ', req2);
+    // console.log('req2 :>> ', req2.requests[0].insertDimension);
+    // writeToGS(batchUpdate, process.env.spreadsheetId, batchUpdateRequest)
+    // writeToGS(batchUpdate, req)
+
+    /* this.sheetsService.spreadsheets.batchUpdate({
+        spreadsheetId=process.env.spreadsheetId,
+        resource: batchUpdateRequest,
+    }, (err, response) => {
+        if (err) {
+            // Handle error
+            console.log(err);
+        } else {
+            const findReplaceResponse = response.replies[1].findReplace;
+            console.log(`${findReplaceResponse.occurrencesChanged} replacements made.`);
+        }
+    }); */
+})()
+
+
+module.exports = { writeToGS };
