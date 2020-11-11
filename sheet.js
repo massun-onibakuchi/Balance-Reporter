@@ -11,7 +11,7 @@ const CREDENTIALS_PATH = 'credentials.json'
  * write the param *values* to a google spread sheet
  * @param {any[][]} values The data to be written. Each item in the inner array corresponds with one cell.
  */
-function writeToGS(callback, ...data) {
+function sheetAPI(callback, ...data) {
     // Load client secrets from a local file.
     fs.readFile(CREDENTIALS_PATH, (err, content) => {
         if (err) throw err
@@ -84,6 +84,16 @@ async function append(auth, request) {
     }
 }
 
+async function get(auth, request) {
+    const sheets = google.sheets({ version: 'v4', auth });
+    try {
+        const response = (await sheets.spreadsheets.values.get(request)).data;
+        return JSON.stringify(response, null, 2);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 async function batchUpdate(auth, request) {
     const sheets = google.sheets({ version: 'v4', auth });
     try {
@@ -93,18 +103,7 @@ async function batchUpdate(auth, request) {
         console.error(err);
     }
 }
-
-const range = 'Wallet!B1:E';
-
 // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatecellsrequest
-const appendRequest = {
-    spreadsheetId: process.env.spreadsheetId,
-    range: range,
-    insertDataOption: 'INSERT_ROWS',
-    valueInputOption: 'USER_ENTERED',
-    resource: {
-        values: [[Date.now(), 1, 2, 5, 0]]
-    }
-}
-module.exports = { writeToGS, append, }
+
+module.exports = { sheetAPI, append, get }
 
