@@ -24,15 +24,14 @@ const row = [];
         valueRenderOption: 'FORMATTED_VALUE',
         dateTimeRenderOption: 'SERIAL_NUMBER',
     };
-    const date = new Date().toLocaleString({ timeZone: 'Asia/Tokyo' })
+    const date = new Date().toLocaleString('Asia/Tokyo')
     console.log('date :>> ', date);
     const wallet = (await exchange.fetchBalance()).total
     console.log('wallet :>> ', wallet);
 
     // await sheetAPI(append, request);
-    const [label] = (await sheetAPI(get, labelRequest)).values
+    const [label]: [string[]] = (await sheetAPI(get, labelRequest)).values
     console.log('label :>> ', label);
 
-    const array=[];
-    label.find
+    const array = [];
 })()

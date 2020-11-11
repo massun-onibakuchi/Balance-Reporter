@@ -1,24 +1,24 @@
-// const fs = require('fs');
 const fs = require('fs').promises;
 require('dotenv').config();
 const readline = require('readline');
 const { google } = require('googleapis');
-const { TLSSocket } = require('tls');
-const { rejects } = require('assert');
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 const TOKEN_PATH = 'token.json'
 const CREDENTIALS_PATH = 'credentials.json'
 
+// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
+// https://qiita.com/vicugna-pacos/items/f7bb0d97bbaa1371edc8
+
 /**
  * write the param *values* to a google spread sheet
  * @param {any[][]} values The data to be written. Each item in the inner array corresponds with one cell.
  */
-async function sheetAPI(callback, ...data) {
+async function sheetAPI(callback, data) {
     // Load client secrets from a local file.
     try {
         const content = await fs.readFile(CREDENTIALS_PATH);
-        authorize(JSON.parse(content), callback, ...data);
+       return await authorize(JSON.parse(content), callback, data);
     } catch (err) {
         if (err) throw err
     }
@@ -37,16 +37,16 @@ async function sheetAPI(callback, ...data) {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-async function authorize(credentials, callback, values) {
+async function authorize(credentials, callback, data) {
     const { client_secret, client_id, redirect_uris } = credentials.installed;
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
     // Check if we have previously stored a token.
     try {
         const token = await fs.readFile(TOKEN_PATH)
         oAuth2Client.setCredentials(JSON.parse(token));
-        callback(oAuth2Client, values);
+       return await callback(oAuth2Client, data);
     } catch (err) {
-        return getNewToken(oAuth2Client, callback);
+       return await getNewToken(oAuth2Client, callback);
     }
 }
 // async function authorize(credentials, callback, values) {
@@ -105,7 +105,8 @@ async function getNewToken(oAuth2Client, callback) {
         .then((token) => {
             fs.writeFile(TOKEN_PATH, JSON.stringify(token))
             console.log('Tokne stored to', TOKEN_PATH);
-        }).then(callback(oAuth2Client));
+        })
+        .then(callback(oAuth2Client));
 
     // const code = await new Promise((resolve, reject) => {
     //     rl.question('', (code) => {
@@ -144,8 +145,7 @@ async function append(auth, request) {
 async function get(auth, request) {
     const sheets = google.sheets({ version: 'v4', auth });
     try {
-        const response = (await sheets.spreadsheets.values.get(request)).data;
-        return JSON.stringify(response, null, 2);
+        return (await sheets.spreadsheets.values.get(request)).data;
     } catch (err) {
         console.error(err);
     }
@@ -161,19 +161,6 @@ async function batchUpdate(auth, request) {
     }
 }
 // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatecellsrequest
-
-const request = {
-    spreadsheetId: process.env.spreadsheetId,
-    range: "Wallet!B1:E",
-    insertDataOption: 'INSERT_ROWS',
-    valueInputOption: 'USER_ENTERED',
-    resource: {
-        values: [[12, 12, 0, 0, 2]]
-    }
-}
-
-sheetAPI(append, request);
-
 
 module.exports = { sheetAPI, append, get }
 
