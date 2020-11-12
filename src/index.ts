@@ -19,15 +19,6 @@ const hoge = {
 };
 
 (async () => {
-    const request = {
-        spreadsheetId: spreadsheetId,
-        range: range,
-        insertDataOption: 'INSERT_ROWS',
-        valueInputOption: 'USER_ENTERED',
-        resource: {
-            values: [[12, 12, 12, 12]]
-        }
-    }
     const labelRequest = {
         spreadsheetId: spreadsheetId,
         range: 'Wallet!A1:1',
@@ -40,14 +31,13 @@ const hoge = {
     const balance = (await exchange.fetchBalance()).total
     console.log('balance :>> ', balance);
 
-    // await sheetAPI(append, request);
     let [label]: [string[]] = (await sheetAPI(get, labelRequest)).values;
     console.log('label :>> ', label);
 
     let index = label.find((el) => el === 'Date') as unknown as number;
 
     let wallet = label.reduce((acc, elem) => {
-        acc[elem] = 0 // or what ever object you want inside
+        acc[elem] = 0
         return acc
     }, {})
     console.log('wallet :>> ', wallet);
@@ -61,15 +51,15 @@ const hoge = {
     label = Object.keys(wallet);
     console.log('row :>> ', row);
 
-    // await sheetAPI(append, {
-    //     spreadsheetId: spreadsheetId,
-    //     range: "Wallet!B1:1",
-    //     insertDataOption: 'INSERT_ROWS',
-    //     valueInputOption: 'USER_ENTERED',
-    //     resource: {
-    //         values: [row]
-    //     }
-    // });
+    await sheetAPI(append, {
+        spreadsheetId: spreadsheetId,
+        range: "Wallet!B1:1",
+        insertDataOption: 'INSERT_ROWS',
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+            values: [row]
+        }
+    });
 
     const hoge2 = {
         "spreadsheetId": spreadsheetId,  // TODO: Update placeholder value.
