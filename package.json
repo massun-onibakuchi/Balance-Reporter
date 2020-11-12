@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "ts-node"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "ccxt": "^1.37.51",
     "dotenv": "^8.2.0",
+    "eslint": "^7.13.0",
     "googleapis": "^64.0.0",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.5"

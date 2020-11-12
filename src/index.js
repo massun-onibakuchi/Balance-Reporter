@@ -36,8 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var CCXT = require('ccxt');
-var initExchange = require('./exchange').initExchange;
-var _a = require('./sheet'), sheetAPI = _a.sheetAPI, append = _a.append, get = _a.get;
+var initExchange = require('../exchange').initExchange;
+var _a = require('../sheet'), sheetAPI = _a.sheetAPI, append = _a.append, get = _a.get;
 var exchange = initExchange(CCXT, undefined, 'ftx');
 var spreadsheetId = process.env.spreadsheetId;
 var range = 'Wallet!B1:E';

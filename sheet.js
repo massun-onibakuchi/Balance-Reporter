@@ -101,7 +101,7 @@ async function getNewToken(oAuth2Client, callback) {
             oAuth2Client.setCredentials(token);
             return token;
         })
-        .catch(err => onsole.error('Error while trying to retrieve access token', err))
+        .catch(err => console.error('Error while trying to retrieve access token', err))
         .then((token) => {
             fs.writeFile(TOKEN_PATH, JSON.stringify(token))
             console.log('Tokne stored to', TOKEN_PATH);
@@ -162,5 +162,5 @@ async function batchUpdate(auth, request) {
 }
 // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatecellsrequest
 
-module.exports = { sheetAPI, append, get }
+module.exports = { sheetAPI, append,batchUpdate, get }
 
