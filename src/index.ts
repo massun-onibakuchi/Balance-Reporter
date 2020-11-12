@@ -5,50 +5,39 @@ const exchange = initExchange(CCXT, undefined, 'ftx');
 
 const spreadsheetId = process.env.spreadsheetId;
 const range = 'Wallet!B1:E';
-const hoge = {
-    "valueInputOption": 'UER_ENTERD',
-    "data": [
-        {
-            "range": "Wallet!A1:1",
-            "majorDimension": "ROWS",
-            "values": ["row"]
-        }
-    ],
-    "includeValuesInResponse": false,
-    "responseValueRenderOption": "FORMATTED_VALUE",
+enum RequestType {
+    Append,
+    BatchUpdate,
+    Get
+}
+const labelRequest = {
+    spreadsheetId: spreadsheetId,
+    range: 'Wallet!A1:1',
+    majorDimension: "ROWS",
+    valueRenderOption: 'FORMATTED_VALUE',
+    dateTimeRenderOption: 'SERIAL_NUMBER',
 };
 
-(async () => {
-    const labelRequest = {
-        spreadsheetId: spreadsheetId,
-        range: 'Wallet!A1:1',
-        majorDimension: "ROWS",
-        valueRenderOption: 'FORMATTED_VALUE',
-        dateTimeRenderOption: 'SERIAL_NUMBER',
-    };
-    const localtime = new Date().toLocaleString('ja-JP')
-    console.log('localtime :>> ', localtime);
-    const balance = (await exchange.fetchBalance()).total
-    console.log('balance :>> ', balance);
-
-    let [label]: [string[]] = (await sheetAPI(get, labelRequest)).values;
-    console.log('label :>> ', label);
-
-    let index = label.find((el) => el === 'Date') as unknown as number;
-
-    let wallet = label.reduce((acc, elem) => {
+const createWalletDate = (label: string[], balance: {}): [string[], number[]] => {
+    const wallet = label.reduce((acc, elem) => {
         acc[elem] = 0
         return acc
-    }, {})
-    console.log('wallet :>> ', wallet);
+    }, {});
+
+    wallet["Date"] = new Date().toLocaleString('ja-JP');
     for (const [key, value] of Object.entries(balance)) {
         wallet[key] = value;
     }
-    console.log('wallet :>> ', wallet);
+    return [Object.keys(wallet), Object.values(wallet)];
+}
 
-    wallet["Date"] = localtime;
-    const row = Object.values(wallet)
-    label = Object.keys(wallet);
+(async () => {
+    const balance = (await exchange.fetchBalance()).total
+
+    const [label]: [string[]] = (await sheetAPI(get, labelRequest)).values;
+    const [newlabel, row] = createWalletDate(label, balance);
+
+    console.log('newlabel :>> ', newlabel);
     console.log('row :>> ', row);
 
     await sheetAPI(append, {
@@ -61,17 +50,29 @@ const hoge = {
         }
     });
 
-    const hoge2 = {
-        "spreadsheetId": spreadsheetId,  // TODO: Update placeholder value.
+    await sheetAPI(batchUpdate, {
+        "spreadsheetId": spreadsheetId,
         "resource": {
-            "valueInputOption": 'USER_ENTERED',  // TODO: Update placeholder value.
+            "valueInputOption": 'USER_ENTERED',
             "data": {
                 "range": "Wallet!A1:1",
                 "majorDimension": "ROWS",
                 "values": [label]
-            },  // TODO: Update placeholder value.
+            },
         }
-    }
-    await sheetAPI(batchUpdate, hoge2);
+    });
 
-})() 
+})()
+
+const hoge = {
+    "valueInputOption": 'UER_ENTERD',
+    "data": [
+        {
+            "range": "Wallet!A1:1",
+            "majorDimension": "ROWS",
+            "values": ["row"]
+        }
+    ],
+    "includeValuesInResponse": false,
+    "responseValueRenderOption": "FORMATTED_VALUE",
+};
