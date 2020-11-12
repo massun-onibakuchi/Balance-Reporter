@@ -43,7 +43,7 @@ var spreadsheetId = process.env.spreadsheetId;
 var range = 'Wallet!B1:E';
 var row = [];
 (function () { return __awaiter(void 0, void 0, void 0, function () {
-    var request, labelRequest, localtime, balance, label, index, wallet, _i, _a, _b, key, value;
+    var request, labelRequest, balance, label, index, wallet, _i, _a, _b, key, value;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -63,8 +63,6 @@ var row = [];
                     valueRenderOption: 'FORMATTED_VALUE',
                     dateTimeRenderOption: 'SERIAL_NUMBER'
                 };
-                localtime = new Date().toLocaleString('Asia/Tokyo');
-                console.log('localtime :>> ', localtime);
                 return [4 /*yield*/, exchange.fetchBalance()];
             case 1:
                 balance = (_c.sent()).total;
