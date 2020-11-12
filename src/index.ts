@@ -1,32 +1,23 @@
-import { request } from "http";
-
 const CCXT = require('ccxt');
 const { initExchange } = require('../exchange');
 const { sheetAPI, append, batchUpdate, get } = require('../sheet');
 const exchange = initExchange(CCXT, undefined, 'ftx');
 
 const spreadsheetId = process.env.spreadsheetId;
-const range = 'Wallet!B1:E';
+
 enum RequestType {
     Append,
+    Get,
     Update,
-    Get
 }
-const labelRequest = {
-    spreadsheetId: spreadsheetId,
-    range: 'Wallet!A1:1',
-    majorDimension: "ROWS",
-    valueRenderOption: 'FORMATTED_VALUE',
-    dateTimeRenderOption: 'SERIAL_NUMBER',
-};
 
-const createRequestBody = (ranges: string[]): unknown => {
+const createRequestBody = (ranges: string[]): any => {
     const labelRange = ranges[0] || 'Wallet!A1:1';
     const appendRange = ranges[1] || 'Wallet!B1:1';
     const updateRange = ranges[2] || 'Wallet!A1:1';
     const labelRequest = {
         spreadsheetId: spreadsheetId,
-        range: appendRange,
+        range: labelRange,
         majorDimension: "ROWS",
         valueRenderOption: 'FORMATTED_VALUE',
         dateTimeRenderOption: 'SERIAL_NUMBER'
@@ -51,32 +42,24 @@ const createRequestBody = (ranges: string[]): unknown => {
             },
         }
     }
-    const requests = [labelRequest, appendRequest, updateRequest];
     function requestBody(req, row) {
         if (req == RequestType.Get) return labelRequest;
         if (req == RequestType.Append) {
             appendRequest.resource.values = row
             return appendRequest
         }
-        if (req == RequestType.Append) {
+        if (req == RequestType.Update) {
             updateRequest.resource.data.values = row
             return updateRequest
         }
     }
+    // const requests = [labelRequest, appendRequest, updateRequest];
     return {
-        requestBody(request) { requests[request] },
-        setRange(type: string | number, range: any) { this[type] = range },
+        // requestBody(request) { requests[request] },
+        // setRange(type: string | number, range: any) { this[type] = range },
         getRequestBody: requestBody
     }
 }
-
-// Class RequestBody {
-//     constructor(){
-//         this.appendRange = 'Wallet!B1:1';
-//         this.labelRange = 'Wallet!A1:1';
-//         this.updateRange = 'Wallet!A1:1';
-//     }
-// }
 
 const createWalletDate = (label: string[], balance: Object): [string[], number[]] => {
     const wallet = label.reduce((acc, elem) => {
@@ -91,48 +74,35 @@ const createWalletDate = (label: string[], balance: Object): [string[], number[]
     return [Object.keys(wallet), Object.values(wallet)];
 }
 
+const requestBody = createRequestBody(['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1']);
+
 (async () => {
-    const balance = (await exchange.fetchBalance()).total
-
+    const labelRequest = requestBody.getRequestBody(RequestType.Get);
     const [label]: [string[]] = (await sheetAPI(get, labelRequest)).values;
+    const balance = (await exchange.fetchBalance()).total
+    
     const [newlabel, row] = createWalletDate(label, balance);
-
+    
     console.log('newlabel :>> ', newlabel);
     console.log('row :>> ', row);
-
-    await sheetAPI(append, {
-        spreadsheetId: spreadsheetId,
-        range: "Wallet!B1:1",
-        insertDataOption: 'INSERT_ROWS',
-        valueInputOption: 'USER_ENTERED',
-        resource: {
-            values: [row]
-        }
-    });
-
-    await sheetAPI(batchUpdate, {
-        "spreadsheetId": spreadsheetId,
-        "resource": {
-            "valueInputOption": 'USER_ENTERED',
-            "data": {
-                "range": "Wallet!A1:1",
-                "majorDimension": "ROWS",
-                "values": [label]
-            },
-        }
-    });
-
+    
+    const appendRequest = requestBody.getRequestBody(RequestType.Append);
+    const updateRequest = requestBody.getRequestBody(RequestType.Update);
+    // await sheetAPI(append, appendRequest);
+    // await sheetAPI(batchUpdate, updateRequest);
+    
+    const res =await exchange.getTicker()
 })()
 
-const hoge = {
-    "valueInputOption": 'UER_ENTERD',
-    "data": [
-        {
-            "range": "Wallet!A1:1",
-            "majorDimension": "ROWS",
-            "values": ["row"]
-        }
-    ],
-    "includeValuesInResponse": false,
-    "responseValueRenderOption": "FORMATTED_VALUE",
-};
+// const hoge = {
+//     "valueInputOption": 'UER_ENTERD',
+//     "data": [
+//         {
+//             "range": "Wallet!A1:1",
+//             "majorDimension": "ROWS",
+//             "values": ["row"]
+//         }
+//     ],
+//     "includeValuesInResponse": false,
+//     "responseValueRenderOption": "FORMATTED_VALUE",
+// };
