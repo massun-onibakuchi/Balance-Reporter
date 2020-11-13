@@ -9,7 +9,7 @@ const fs = require('fs');
  * @param {String} path path to the api key and secret file
  * @param {String} exchange exchange name
  */
-const setKeys = (path, exchange) => {
+const setKeys = (path) => {
     if (process.env.APIKEY == undefined || process.env.APISECRET == undefined) throw Error("NO_APIKEY")
     return {
         'APIKEY': process.env.APIKEY,
@@ -42,7 +42,7 @@ const setKeys = (path, exchange) => {
  */
 const initExchange = (ccxt, path = undefined, exchangeId) => {
     //   const exName = process.argv[2] === 'production' ? 'ftx' : 'bitmex';
-    const keys = setKeys(path, exchangeId);
+    const keys = setKeys(path);
     const exchange = new ccxt[exchangeId.toLowerCase()]({
         'apiKey': keys.APIKEY,
         'secret': keys.APISECRET,

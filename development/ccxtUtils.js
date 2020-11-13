@@ -1,7 +1,7 @@
 'use strict';
 const { orderConfig } = require('../userConfig/orderConfig');
 const CCXT = require('ccxt');
-const { initExchange } = require('./exchange');
+const { initExchange } = require('../exchange');
 
 const CONFIG_PATH = 'config.json';
 const exchange = initExchange(CCXT, CONFIG_PATH, 'bitmex');

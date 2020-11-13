@@ -18,7 +18,7 @@ async function sheetAPI(callback, data) {
     // Load client secrets from a local file.
     try {
         const content = await fs.readFile(CREDENTIALS_PATH);
-       return await authorize(JSON.parse(content), callback, data);
+        return await authorize(JSON.parse(content), callback, data);
     } catch (err) {
         if (err) throw err
     }
@@ -44,9 +44,10 @@ async function authorize(credentials, callback, data) {
     try {
         const token = await fs.readFile(TOKEN_PATH)
         oAuth2Client.setCredentials(JSON.parse(token));
-       return await callback(oAuth2Client, data);
+        return await callback(oAuth2Client, data);
     } catch (err) {
-       return await getNewToken(oAuth2Client, callback);
+        console.log('err :>> ', err);
+        // return await getNewToken(oAuth2Client, callback);
     }
 }
 // async function authorize(credentials, callback, values) {
@@ -160,7 +161,8 @@ async function batchUpdate(auth, request) {
         console.error(err);
     }
 }
+
 // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatecellsrequest
 
-module.exports = { sheetAPI, append,batchUpdate, get }
+module.exports = { sheetAPI, append, batchUpdate, get }
 
