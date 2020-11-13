@@ -1,5 +1,5 @@
 const fs = require('fs').promises;
-require('dotenv').config();
+// require('dotenv').config();
 const readline = require('readline');
 const { google } = require('googleapis');
 

@@ -1,6 +1,5 @@
 'use strict';
-require('dotenv').config();
-const fs = require('fs');
+// require('dotenv').config();
 
 /**
  * return api key and secret 
