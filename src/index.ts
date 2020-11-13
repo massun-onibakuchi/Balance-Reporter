@@ -45,11 +45,11 @@ const createRequestBody = (ranges: string[]): any => {
     function requestBody(req, row) {
         if (req == RequestType.Get) return labelRequest;
         if (req == RequestType.Append) {
-            appendRequest.resource.values = row
+            appendRequest.resource.values.push(row)
             return appendRequest
         }
         if (req == RequestType.Update) {
-            updateRequest.resource.data.values = row
+            updateRequest.resource.data.values.push(row);
             return updateRequest
         }
     }
@@ -61,14 +61,14 @@ const createRequestBody = (ranges: string[]): any => {
     }
 }
 
-const createWalletDate = (label: string[], balance: Object): [string[], number[]] => {
-    const wallet = label.reduce((acc, elem) => {
+const createWalletDate = (labels: string[], data: Object): [string[], number[]] => {
+    const wallet = labels.reduce((acc, elem) => {
         acc[elem] = 0
         return acc
     }, {});
 
-    wallet["Date"] = new Date().toLocaleString('ja-JP');
-    for (const [key, value] of Object.entries(balance)) {
+    wallet["Date"] = wallet["Date"] || new Date().toLocaleString('ja-JP');
+    for (const [key, value] of Object.entries(data)) {
         wallet[key] = value;
     }
     return [Object.keys(wallet), Object.values(wallet)];
@@ -77,21 +77,35 @@ const createWalletDate = (label: string[], balance: Object): [string[], number[]
 const requestBody = createRequestBody(['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1']);
 
 (async () => {
+    const symbols = ['BTC/USD', 'ETH/USD']
+    let prices = {
+        USD: 1,
+        USDT: 1
+    };
     const labelRequest = requestBody.getRequestBody(RequestType.Get);
-    const [label]: [string[]] = (await sheetAPI(get, labelRequest)).values;
+
+    const [sheetLabel]: [string[]] = (await sheetAPI(get, labelRequest)).values;
     const balance = (await exchange.fetchBalance()).total
-    
-    const [newlabel, row] = createWalletDate(label, balance);
-    
+
+    const [newlabel, row] = createWalletDate(sheetLabel, balance);
     console.log('newlabel :>> ', newlabel);
     console.log('row :>> ', row);
     
-    const appendRequest = requestBody.getRequestBody(RequestType.Append);
-    const updateRequest = requestBody.getRequestBody(RequestType.Update);
+    const appendRequest = requestBody.getRequestBody(RequestType.Append, row);
+    const updateRequest = requestBody.getRequestBody(RequestType.Update, newlabel);
     // await sheetAPI(append, appendRequest);
     // await sheetAPI(batchUpdate, updateRequest);
     
-    const res =await exchange.getTicker()
+    const tickers = await exchange.fetchTickers(symbols);
+    for (const symbol of symbols) {
+        const label = symbol.slice(0, 3);
+        prices[label] = tickers[symbol]["close"];
+    }
+    const [, priceRow] = createWalletDate(newlabel, prices);
+    console.log('priceRow :>> ', priceRow);
+
+    await sheetAPI(append, requestBody.getRequestBody(RequestType.Append, priceRow));
+
 })()
 
 // const hoge = {
