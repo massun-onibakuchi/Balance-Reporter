@@ -2,7 +2,7 @@
 const fs = require('fs').promises;
 const readline = require('readline');
 const { google } = require('googleapis');
-const { init } = require('./set');
+const { cred, accessToken } = require('./setting');
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 const TOKEN_PATH = 'token.json'
@@ -20,10 +20,14 @@ const CREDENTIALS_PATH = 'credentials.json'
 async function sheetAPI(callback, data) {
     // Load client secrets from a local file.
     try {
-        const content = await fs.readFile(CREDENTIALS_PATH);
+        const content = await fs.readFile(CREDENTIALS_PATH)
+        content && console.log('[Info]:Credentials.json is undifined ');
         return await authorize(JSON.parse(content), callback, data);
     } catch (err) {
-        if (err) throw err
+        if (err) {
+            console.log('CAN NOT FIND CREDNTIALS');
+            console.log('err in SheetAPI :>> ', err);
+        }
     }
 }
 /**
@@ -33,14 +37,18 @@ async function sheetAPI(callback, data) {
  * @param {function} callback The callback to call with the authorized client.
  */
 async function authorize(credentials, callback, data) {
-    const { client_secret, client_id, redirect_uris } = credentials.installed;
+    let { client_secret, client_id, redirect_uris } = credentials.installed;
+    if (client_id == undefined || client_id == undefined) {
+        ({ client_secret, client_id, redirect_uris } = cred.installed);
+    }
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
     // Check if we have previously stored a token.
     try {
-        const token = await fs.readFile(TOKEN_PATH)
+        const token = await fs.readFile(TOKEN_PATH) || token;
         oAuth2Client.setCredentials(JSON.parse(token));
         return await callback(oAuth2Client, data);
     } catch (err) {
+        console.log('CAN NOT FIND TOKEN');
         console.log('err :>> ', err);
         // return getNewToken(oAuth2Client, callback, data);
     }
