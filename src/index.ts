@@ -1,6 +1,6 @@
 const CCXT = require('ccxt');
-const { initExchange } = require('../exchange');
-const { sheetAPI, append, batchUpdate, get } = require('../sheet');
+const { initExchange } = require('./exchange');
+const { sheetAPI, append, batchUpdate, get } = require('./sheet');
 const exchange = initExchange(CCXT, undefined, 'ftx');
 
 const spreadsheetId = process.env.spreadsheetId;

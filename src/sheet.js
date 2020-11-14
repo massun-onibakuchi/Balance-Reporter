@@ -1,12 +1,28 @@
-const fs = require('fs').promises;
 // require('dotenv').config();
+const fs = require('fs').promises;
 const readline = require('readline');
 const { google } = require('googleapis');
+const { init } = require('./set');
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 const TOKEN_PATH = 'token.json'
 const CREDENTIALS_PATH = 'credentials.json'
+const credentials = {
+    installed: {
+        client_id: process.env.client_id,
+        client_secret: process.env.client_secret,
+        redirect_uris: process.env.redirect_uris
+    }
+}
+const token = {
+    access_token: process.env.access_token,
+    refresh_token: process.env.refresh_token,
+    scope: "https://www.googleapis.com/auth/spreadsheets",
+    token_type: "Bearer",
+    expiry_date: 1605062558223
+}
 
+// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatecellsrequest
 // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
 // https://qiita.com/vicugna-pacos/items/f7bb0d97bbaa1371edc8
 
@@ -23,14 +39,6 @@ async function sheetAPI(callback, data) {
         if (err) throw err
     }
 }
-// function sheetAPI(callback, ...data) {
-//     // Load client secrets from a local file.
-//     fs.readFile(CREDENTIALS_PATH, (err, content) => {
-//         if (err) throw err
-//         else return authorize(JSON.parse(content), callback, ...data);
-//     })
-// }
-
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
  * given callback function.
@@ -50,16 +58,6 @@ async function authorize(credentials, callback, data) {
         // return await getNewToken(oAuth2Client, callback);
     }
 }
-// async function authorize(credentials, callback, values) {
-//     const { client_secret, client_id, redirect_uris } = credentials.installed;
-//     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-//     // Check if we have previously stored a token.
-//     await fs.readFile(TOKEN_PATH, (err, token) => {
-//         if (err) return getNewToken(oAuth2Client, callback);
-//         oAuth2Client.setCredentials(JSON.parse(token));
-//         callback(oAuth2Client, values);
-//     });
-// }
 
 /**
  * Get and store new token after prompting for user authorization, and then
@@ -77,20 +75,6 @@ async function getNewToken(oAuth2Client, callback) {
         input: process.stdin,
         output: process.stdout,
     });
-    // rl.question('Enter the code from that page here: ', (code) => {
-    //     rl.close();
-    //     oAuth2Client.getToken(code, (err, token) => {
-    //         if (err) return console.error('Error while trying to retrieve access token', err);
-    //         oAuth2Client.setCredentials(token);
-    //         // Store the token to disk for later program executions
-    //         fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-    //             if (err) return console.error(err);
-    //             console.log('Token stored to', TOKEN_PATH);
-    //         });
-    //         callback(oAuth2Client);
-    //     });
-    // });
-
     const code = await new Promise((resolve, reject) => {
         rl.question('', (code) => {
             rl.close();
@@ -108,22 +92,6 @@ async function getNewToken(oAuth2Client, callback) {
             console.log('Tokne stored to', TOKEN_PATH);
         })
         .then(callback(oAuth2Client));
-
-    // const code = await new Promise((resolve, reject) => {
-    //     rl.question('', (code) => {
-    //         rl.close();
-    //         return resolve(code);
-    //     })
-    // });
-
-    // let token
-    // try {
-    //     token = await oAuth2Client.getToken(code);
-    // } catch (err) { console.error('Error while trying to retrieve access token', err); }
-    // await fs.writeFile(TOKEN_PATH, JSON.stringify(token))
-    //     .then(() => console.log('Token stored to', TOKEN_PATH))
-    //     .catch(err => console.err())
-    //     .then(callback(oAuth2Client))
 }
 
 
@@ -162,7 +130,8 @@ async function batchUpdate(auth, request) {
     }
 }
 
-// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatecellsrequest
+init(CREDENTIALS_PATH, credentials);
+init(TOKEN_PATH, token);
 
 module.exports = { sheetAPI, append, batchUpdate, get }
 
