@@ -7,20 +7,7 @@ const { init } = require('./set');
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 const TOKEN_PATH = 'token.json'
 const CREDENTIALS_PATH = 'credentials.json'
-const credentials = {
-    installed: {
-        client_id: process.env.client_id,
-        client_secret: process.env.client_secret,
-        redirect_uris: process.env.redirect_uris
-    }
-}
-const token = {
-    access_token: process.env.access_token,
-    refresh_token: process.env.refresh_token,
-    scope: "https://www.googleapis.com/auth/spreadsheets",
-    token_type: "Bearer",
-    expiry_date: 1605062558223
-}
+
 
 // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatecellsrequest
 // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
@@ -55,7 +42,7 @@ async function authorize(credentials, callback, data) {
         return await callback(oAuth2Client, data);
     } catch (err) {
         console.log('err :>> ', err);
-        return getNewToken(oAuth2Client, callback, data);
+        // return getNewToken(oAuth2Client, callback, data);
     }
 }
 
@@ -90,7 +77,9 @@ async function getNewToken(oAuth2Client, callback, data) {
         fs.writeFile(TOKEN_PATH, JSON.stringify(token))
         console.log('Tokne stored to', TOKEN_PATH);
     }).catch(err => console.error('Error while trying to retrieve access token', err))
-        .then(callback(oAuth2Client, data));
+        .then(callback(oAuth2Client, data)).catch((e) => {
+            console.log(' :>> ', e);
+        })
 }
 
 
@@ -129,8 +118,6 @@ async function batchUpdate(auth, request) {
     }
 }
 
-init(CREDENTIALS_PATH, credentials);
-init(TOKEN_PATH, token);
-
 module.exports = { sheetAPI, append, batchUpdate, get }
+// module.exports = { sheetAPI, append, batchUpdate, get }
 

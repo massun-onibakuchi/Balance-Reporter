@@ -1,12 +1,34 @@
+import { chat } from "googleapis/build/src/apis/chat";
+
 const CCXT = require('ccxt');
 const { initExchange } = require('./exchange');
 const { sheetAPI, append, batchUpdate, get } = require('./sheet');
 const exchange = initExchange(CCXT, undefined, 'ftx');
+const { init } = require('./set');
 
 const spreadsheetId = process.env.spreadsheetId;
 const priceRange = 'Price!A1:1';
 const walletRanges = ['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1'];
 const symbols = ['BTC/USD', 'ETH/USD']
+
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const TOKEN_PATH = 'token.json'
+const CREDENTIALS_PATH = 'credentials.json'
+
+const credentials = {
+    installed: {
+        client_id: process.env.client_id,
+        client_secret: process.env.client_secret,
+        redirect_uris: process.env.redirect_uris
+    }
+}
+const token = {
+    access_token: process.env.access_token,
+    refresh_token: process.env.refresh_token,
+    scope: "https://www.googleapis.com/auth/spreadsheets",
+    token_type: "Bearer",
+    expiry_date: 1605062558223
+}
 
 enum RequestType {
     Append,
@@ -82,7 +104,7 @@ const createWalletData = (labels: string[], data: Object): [string[], number[]] 
 
 const requestBody = createRequestBody(walletRanges);
 
-(async () => {
+const main = async () => {
     let prices = {
         USD: 1,
         USDT: 1
@@ -111,8 +133,16 @@ const requestBody = createRequestBody(walletRanges);
 
     await sheetAPI(append, requestBody.getRequestBody(RequestType.Append, priceRow, priceRange));
 
-})()
+}
 
+try {
+    init(CREDENTIALS_PATH, credentials);
+    init(TOKEN_PATH, token);
+    main()
+} catch (e) {
+    console.log('UNIEXPECTED ERROR :>> ', e);
+    process.exit(1);
+}
 // const hoge = {
 //     "valueInputOption": 'UER_ENTERD',
 //     "data": [
