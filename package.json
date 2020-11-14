@@ -10,6 +10,9 @@
   },
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": "12.x"
+  },
   "dependencies": {
     "ccxt": "^1.37.51",
     "dotenv": "^8.2.0",
