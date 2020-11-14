@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "run": "ts-node src/index.ts",
-    "node": "node -r dotenv/config src/index.js "
+    "script": "npx ts-node -r dotenv/config src/index.ts",
+    "start": "node -r dotenv/config src/index.js "
   },
   "author": "",
   "license": "ISC",
