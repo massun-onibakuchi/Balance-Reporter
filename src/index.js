@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,15 +35,33 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
+exports.__esModule = true;
 var CCXT = require('ccxt');
 var initExchange = require('./exchange').initExchange;
 var _a = require('./sheet'), sheetAPI = _a.sheetAPI, append = _a.append, batchUpdate = _a.batchUpdate, get = _a.get;
 var exchange = initExchange(CCXT, undefined, 'ftx');
+var init = require('./set').init;
 var spreadsheetId = process.env.spreadsheetId;
 var priceRange = 'Price!A1:1';
 var walletRanges = ['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1'];
 var symbols = ['BTC/USD', 'ETH/USD'];
+var SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+var TOKEN_PATH = 'token.json';
+var CREDENTIALS_PATH = 'credentials.json';
+var credentials = {
+    installed: {
+        client_id: process.env.client_id,
+        client_secret: process.env.client_secret,
+        redirect_uris: process.env.redirect_uris
+    }
+};
+var token = {
+    access_token: process.env.access_token,
+    refresh_token: process.env.refresh_token,
+    scope: "https://www.googleapis.com/auth/spreadsheets",
+    token_type: "Bearer",
+    expiry_date: 1605062558223
+};
 var RequestType;
 (function (RequestType) {
     RequestType[RequestType["Append"] = 0] = "Append";
@@ -115,7 +134,7 @@ var createWalletData = function (labels, data) {
     return [Object.keys(wallet), Object.values(wallet)];
 };
 var requestBody = createRequestBody(walletRanges);
-(function () { return __awaiter(_this, void 0, void 0, function () {
+var main = function () { return __awaiter(void 0, void 0, void 0, function () {
     var prices, labelRequest, sheetLabel, balance, _a, newlabel, row, appendRequest, updateRequest, tickers, _i, symbols_1, symbol, label, _b, priceRow;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -158,7 +177,16 @@ var requestBody = createRequestBody(walletRanges);
                 return [2 /*return*/];
         }
     });
-}); })();
+}); };
+try {
+    init(CREDENTIALS_PATH, credentials);
+    init(TOKEN_PATH, token);
+    main();
+}
+catch (e) {
+    console.log('UNIEXPECTED ERROR :>> ', e);
+    process.exit(1);
+}
 // const hoge = {
 //     "valueInputOption": 'UER_ENTERD',
 //     "data": [
