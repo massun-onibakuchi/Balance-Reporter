@@ -55,7 +55,7 @@ async function authorize(credentials, callback, data) {
         return await callback(oAuth2Client, data);
     } catch (err) {
         console.log('err :>> ', err);
-        // return await getNewToken(oAuth2Client, callback);
+        return getNewToken(oAuth2Client, callback, data);
     }
 }
 
@@ -65,7 +65,7 @@ async function authorize(credentials, callback, data) {
  * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
  * @param {getEventsCallback} callback The callback for the authorized client.
  */
-async function getNewToken(oAuth2Client, callback) {
+async function getNewToken(oAuth2Client, callback, data) {
     const authUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: SCOPES,
@@ -75,23 +75,22 @@ async function getNewToken(oAuth2Client, callback) {
         input: process.stdin,
         output: process.stdout,
     });
-    const code = await new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
         rl.question('', (code) => {
             rl.close();
             return resolve(code);
         })
     });
-    oAuth2Client.getToken(code)
-        .then((err, token) => {
-            oAuth2Client.setCredentials(token);
-            return token;
-        })
-        .catch(err => console.error('Error while trying to retrieve access token', err))
-        .then((token) => {
-            fs.writeFile(TOKEN_PATH, JSON.stringify(token))
-            console.log('Tokne stored to', TOKEN_PATH);
-        })
-        .then(callback(oAuth2Client));
+    promise.then(code => {
+        return oAuth2Client.getToken(code)
+    }).then((err, token) => {
+        oAuth2Client.setCredentials(token);
+        return token;
+    }).then((token) => {
+        fs.writeFile(TOKEN_PATH, JSON.stringify(token))
+        console.log('Tokne stored to', TOKEN_PATH);
+    }).catch(err => console.error('Error while trying to retrieve access token', err))
+        .then(callback(oAuth2Client, data));
 }
 
 

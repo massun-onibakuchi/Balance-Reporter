@@ -81,15 +81,7 @@ function getNewToken(oAuth2Client, callback) {
  */
 async function appendValues(auth, request) {
     const sheets = google.sheets({ version: 'v4', auth });
-    // const request = {
-    //     spreadsheetId: process.env.spreadsheetId,
-    //     range: range,
-    //     insertDataOption: 'INSERT_ROWS',
-    //     valueInputOption: 'USER_ENTERED',
-    //     resource: {
-    //         values: values
-    //     }
-    // }
+
     try {
         const response = (await sheets.spreadsheets.values.append(request)).data;
         console.log(JSON.stringify(response, null, 2));
@@ -190,7 +182,16 @@ const data = [
         spreadsheetId: process.env.spreadsheetId,
         resource: { data },
     };
-    writeToGS(batchUpdate, req2)
+    const request = {
+        spreadsheetId: process.env.spreadsheetId,
+        range: range,
+        insertDataOption: 'INSERT_ROWS',
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+            values: [[12,12,12,]]
+        }
+    }
+    writeToGS(appendValues, request);
     // console.log('req2 :>> ', req2);
     // console.log('req2 :>> ', req2.requests[0].insertDimension);
     // writeToGS(batchUpdate, process.env.spreadsheetId, batchUpdateRequest)
