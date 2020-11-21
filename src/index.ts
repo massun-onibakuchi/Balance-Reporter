@@ -79,7 +79,8 @@ const createWalletData = (labels: string[], data: Object): [string[], number[]] 
         return acc
     }, {});
 
-    wallet["Date"] = wallet["Date"] || new Date().toLocaleString('ja-JP');
+    // new Date(Date.now() - new Date().getTimezoneOffset() * 60 * 1000)// 日本時間表記
+    wallet["Date"] = new Date().toISOString(); //ISO表記のUTC時間
     for (const [key, value] of Object.entries(data)) {
         wallet[key] = value;
     }
@@ -95,18 +96,21 @@ const main = async () => {
     };
     const labelRequest = requestBody.getRequestBody(RequestType.Get);
 
+    // fetch label from sheet
     const [sheetLabel]: [string[]] = (await sheetAPI(get, labelRequest)).values;
+    // fetch wallet (spot)
     const balance = (await exchange.fetchBalance()).total
 
-    const [newlabel, row] = createWalletData(sheetLabel, balance);
+    const [newlabel, holdings] = createWalletData(sheetLabel, balance);
     console.log('newlabel :>> ', newlabel);
-    console.log('row :>> ', row);
+    console.log('holdings :>> ', holdings);
 
-    const appendRequest = requestBody.getRequestBody(RequestType.Append, row);
+    const appendRequest = requestBody.getRequestBody(RequestType.Append, holdings);
     const updateRequest = requestBody.getRequestBody(RequestType.Update, newlabel);
-    await sheetAPI(append, appendRequest);
-    await sheetAPI(batchUpdate, updateRequest);
+    // await sheetAPI(append, appendRequest);
+    // await sheetAPI(batchUpdate, updateRequest);
 
+    // fetch close price from exchange
     const tickers = await exchange.fetchTickers(symbols);
     for (const symbol of symbols) {
         const label = symbol.slice(0, 3);
@@ -115,7 +119,8 @@ const main = async () => {
     const [, priceRow] = createWalletData(newlabel, prices);
     console.log('priceRow :>> ', priceRow);
 
-    await sheetAPI(append, requestBody.getRequestBody(RequestType.Append, priceRow, priceRange));
+    // append price info to the sheet 
+    // await sheetAPI(append, requestBody.getRequestBody(RequestType.Append, priceRow, priceRange));
 
 }
 

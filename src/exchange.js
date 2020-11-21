@@ -9,7 +9,8 @@
  * @param {String} exchange exchange name
  */
 const setKeys = (path) => {
-    if (process.env.APIKEY == undefined || process.env.APISECRET == undefined) throw Error("NO_APIKEY")
+    if (process.env.APIKEY == undefined || process.env.APISECRET == undefined)
+        throw Error("ERROR :NO_APIKEY")
     return {
         'APIKEY': process.env.APIKEY,
         'APISECRET': process.env.APISECRET
