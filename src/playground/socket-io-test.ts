@@ -1,27 +1,25 @@
 // import axios from 'axios';
-import { io } from 'socket.io-client';
-const socket = io('wss://stream.bitbank.cc');
+import  io  from 'socket.io-client';
+// const socket = io('wss://stream.bitbank.cc/socket.io')
+const socket = io('wss://stream.bitbank.cc', {
+    transports: ['websocket']
+});
 // const CONFIG = require('./config.js');
 // const bitbank = require('node-bitbankcc');
 
-// const onConnect = () => {
-//     console.log('========');
-//     console.log('--socketconneted--');
-//     console.log('--socketconneted--', socket.connected, socket.id);
-//     socket.emit('message', (res) => {
-//         console.log('--Eve message calling emit() in socket.on()', res);
-//     });
-//     socket.emit('join-room', 'ticker_btc_jpy', (data) => {
-//         console.log('--calling emit() in socket.on()', data);
-//     });
-// };
-socket.connect()
-// socket.emit('join-room', 'depth_diff_eth_jpy')
+// socket.connect()
+socket.on('connect',function(){
+    console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+})
+const wholeBookChannel ='depth_whole_eth_jpy';
+const diffBookChannel = 'depth_diff_eth_jpy';
+// socket.emit('join-room', wholeBookChannel);
+socket.emit('join-room', diffBookChannel);
 socket.on('open', function open() {
-    socket.send('join-room', 'depth_diff_eth_jpy')
+    console.log('hoge');
 })
 socket.on('message', function incoming(data) {
-    console.log('data :>> ', data);
+    console.log('data :>> ', data.message.data);
 })
 
 
