@@ -1,14 +1,27 @@
 import CCXT from 'ccxt';
+import axiosBase from 'axios';
 const { initExchange } = require('../exchange');
-const exchange = initExchange(CCXT, undefined, 'ftx')
+
+const ccxt = initExchange(CCXT, undefined, 'ftx');
+const axios = axiosBase.create({
+    baseURL: 'http://ftx.com/api', // バックエンドB のURL:port を指定する
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    responseType: 'json'
+});
 
 const symbols = ['BTC/USD', 'ETH/USD', 'BTC-PERP', 'ETH-PERP'];
 
 (async () => {
-    let since = exchange.milliseconds() - 3600 * 1000 * 24 // -1 day from now
-    // alternatively, fetch from a certain starting datetime
-    // let since = exchange.parse8601 ('2018-01-01T00:00:00Z')
-    const symbol = symbols[1] // change for your symbol
-    const limit = 10 // change for your limit
-    
+    const res = (await axios.get('indexes/DEFI/weights')).data.result
+    console.log('res :>> ', res);
+
+    const symbols = [];
+    for (const key in res) {
+        symbols.push(key+'/USD');
+    }
+
+    // const tickers = await exchange.fetchTickers(symbols);
+
 })()
