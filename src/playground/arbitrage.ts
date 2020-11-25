@@ -74,43 +74,66 @@ const bb = new CCXT['bitbank']();
     await addCPrices(tickers, 'USD', 'JPY');
     tickers = await addBPrices(tickers, bb, symbols.map(el => el + '/JPY'), 'USD');
 
-    const expectedReturn = (tickers: Tickers, tradeConfig: { [x: string]: any; }) => {
+    interface ArbitrageObject extends Tickers {
+        buy: number;
+        sellBasedUSD: number;
+        sellBasedJPY: number;
+        quantity: number;
+        tradeFeePercent: number;
+        sendFeeCrypto: number;
+        diffPercent: () => number;
+        sendFeeJPY: () => number;
+        totalMoney: () => number;
+        profit: () => number;
+        expectedReturn: () => number;
+    }
+
+    const expectedReturn = (tickers: Tickers, arbitrageConfig): ArbitrageObject => {
+        const arbitrageObj = Object.assign(tickers)
         const calculator = {
             diffPercent: function () {
                 return (typeof this.sellBasedJPY == 'number') ? 100 * (this.sell / this.buy - 1) : NaN
             },
-            quantity: 0,
-            tradeFeePercent: null,
-            sendFeeCrypto: null,
             sendFeeJPY: function () {
-                return this.sendFee * this.buy;
+                return this.sendFeeCrypto * this.buy;
             },
-            totalmoney: function () { return this.buy * this.quantity },
+            totalMoney: function () { return this.buy * this.quantity },
             profit: function () {
                 return this.quantity * (this.diffPercent() * this.buy - this.tradeFeePercent * this.sellBasedJPY) / 100 - this.sendFeeCrypto * this.buy
             },
             expectedReturn: function () {
-                return 100 * this.profit() / this.totalmoney
+                return 100 * this.profit() / this.totalMoney
             }
         };
-        for (const [key, value] of Object.entries(tickers)) {
+        for (const [key, value] of Object.entries(arbitrageObj)) {
             value["buy"] = value["cask"] - value["bbid"] > 0 ? value["bbid"] : null
-            value["sellBasedUSD"] = value["cask"] - value["bbid"] > 0 ? value["ask"] : null
+            value["sellBasedUSD"] = value["ask"] - value["bbid"] > 0 ? value["ask"] : null
             value["sellBasedJPY"] = value["cask"] - value["bbid"] > 0 ? value["ask"] * value["rate"] : null
-            value.assign(tradeConfig[key]);
+            value["quantity"] = parseFloat(arbitrageConfig[key]["quantity"]);
+            value["tradeFeePercent"] = parseFloat(arbitrageConfig[key]["tradeFeePercent"]);
+            value["sendFeeCrypto"] = parseFloat(arbitrageConfig[key]["sendFeeCrypto"]);
+            Object.assign(value, calculator);
         }
-        Object.assign(calculator, Object.assign(tickers));
+        return arbitrageObj
     }
 
-    console.log('expectedReturn(tickers,) :>> ', expectedReturn(tickers, arbitrageConfig));
-
+    const dataset = expectedReturn(tickers, arbitrageConfig);
+    for (const key in dataset) {
+        if (Object.prototype.hasOwnProperty.call(dataset, key)) {
+            const el = dataset[key];
+            console.log('el :>> ', el);
+            console.log('el.totalMoney :>> ', el.totalMoney());
+            console.log('el.sendFeeJPY :>> ', el.sendFeeJPY());
+            console.log('el.diffPercent() :>> ', el.diffPercent());
+            console.log('el.profit() :>> ', el.profit());
+            console.log('el.expectedReturn() :>> ', el.expectedReturn());
+        }
+    }
     // function TradeConfig(quantity, tradeFee, sendFeeCrypto) {
     //     this.quantity = quantity
     //     this.tradeFee = tradeFee
     //     this.sendFeeCrypto = sendFeeCrypto
     // }
-
-}
     // const res = (await axios.get('indexes/DEFI/weights')).data.result
     // console.log('res 1 res);
 
@@ -119,4 +142,4 @@ const bb = new CCXT['bitbank']();
     //     defiIndex.push(key+'/USD');
     // }
 
-}) ()
+})()

@@ -1,17 +1,17 @@
 {
     "BTC/USD": {
         "quantity": "0.02",
-        "tradeFee": "0.07",
+        "tradeFeePercent": "0.07",
         "sendFeeCrypto": "0.001"
     },
     "ETH/USD": {
         "quantity": "1.1",
-        "tradeFee": "0.07",
+        "tradeFeePercent": "0.07",
         "sendFeeCrypto": "0.005"
     },
     "XRP/USD": {
         "quantity": "900",
-        "tradeFee": "0.07",
+        "tradeFeePercent": "0.07",
         "sendFeeCrypto": "0.15"
     }
 }
