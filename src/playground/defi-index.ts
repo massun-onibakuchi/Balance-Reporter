@@ -19,7 +19,7 @@ const symbols = ['BTC/USD', 'ETH/USD', 'BTC-PERP', 'ETH-PERP'];
 
     const symbols = [];
     for (const key in res) {
-        symbols.push(key+'/USD');
+        symbols.push(key + '/USD');
     }
 
     // const tickers = await exchange.fetchTickers(symbols);
