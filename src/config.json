@@ -6,5 +6,10 @@
     "ftx": {
         "APIKEY": "",
         "APISECRET": ""
+    },
+    "LINE":{
+        "BEAR_ACCESS_TOKEN":"",
+        "USER_ID":""
+
     }
 }

@@ -2,8 +2,9 @@ import CCXT from 'ccxt';
 import axiosBase from 'axios';
 const { initExchange } = require('../exchange');
 const exchange = initExchange(CCXT, undefined, 'ftx') as CCXT.Exchange;
+import { pushMessage } from './line';
+import { Prices, Tickers, ArbitrageCalculator, ArbitrageSet } from './arbitrageInterfaces';
 import arbitrageConfig from './arbitrageConfig.json';
-import { Prices, Tickers, ArbitrageCalculator, ArbitrageData, ArbitrageSet } from './arbitrageInterfaces';
 
 const symbols = ['BTC', 'ETH', 'XRP'];
 const bb = new CCXT['bitbank']();
@@ -79,6 +80,15 @@ const bb = new CCXT['bitbank']();
         return tickers as ArbitrageSet
     }
 
+    const judgeOp = (basis = 1, dataset: ArbitrageSet): ArbitrageCalculator | null => {
+        let tmp //= { symbol: '', bestReturn: 0 };
+        for (const [key, data] of Object.entries(dataset)) {
+            tmp = (data.expectedReturn() > (tmp?.bestReturn || 0)) && { symbol: key, bestReturn: data.expectedReturn() }
+        }
+        if (tmp.bestReturn > basis) return dataset[tmp.symbol];
+        return null;
+    }
+
     let tickers = assignTickers(res, {});
     await addCPrices(tickers, 'USD', 'JPY');
     tickers = await addBPrices(tickers, bb, symbols.map(el => el + '/JPY'), 'USD');
@@ -97,16 +107,14 @@ const bb = new CCXT['bitbank']();
         }
     }
 
-    const judgeOp = (basis = 1, dataset: ArbitrageSet) => {
-        let tmp = { symbol: '', bestReturn: 0 };
-        for (const [key, data] of Object.entries(dataset)) {
-            tmp = (data.expectedReturn() > tmp.bestReturn || 0) && { symbol: key, bestReturn: data.expectedReturn() }
-        }
-        if (dataset[tmp.symbol].expectedReturn() > basis) return dataset[tmp.symbol];
-        return undefined;
+
+    const data = judgeOp(1, dataset);
+    const message = {
+        type: "text",
+        text: `${Date.now()}:${data.symbol}  ${data.totalMoney()} ${data.diffPercent()} ${data.expectedReturn()}`
     }
 
-
+    pushMessage(axiosBase, message)
 
 
 })()
