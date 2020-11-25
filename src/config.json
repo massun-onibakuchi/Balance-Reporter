@@ -1,0 +1,10 @@
+{
+    "bitbank": {
+        "APIKEY": "",
+        "APISECRET": ""
+    },
+    "ftx": {
+        "APIKEY": "",
+        "APISECRET": ""
+    }
+}

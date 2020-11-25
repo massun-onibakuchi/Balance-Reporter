@@ -8,7 +8,7 @@
  * @param {String} path path to the api key and secret file
  * @param {String} exchange exchange name
  */
-const setKeys = (path) => {
+const setKeys = () => {
     if (process.env.APIKEY == undefined || process.env.APISECRET == undefined)
         throw Error("ERROR :NO_APIKEY")
     return {
@@ -25,7 +25,7 @@ const setKeys = (path) => {
  * @return {CCXT.EXCHANGE} exchange
  */
 const initExchange = (ccxt, path = undefined, exchangeId) => {
-    const keys = setKeys(path);
+    const keys = setKeys();
     const exchange = new ccxt[exchangeId.toLowerCase()]({
         'apiKey': keys.APIKEY,
         'secret': keys.APISECRET,

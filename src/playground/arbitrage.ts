@@ -1,56 +1,77 @@
 import CCXT from 'ccxt';
 import axiosBase from 'axios';
 const { initExchange } = require('../exchange');
-
-const exchange = initExchange(CCXT, undefined, 'ftx');
-const axiosbb = axiosBase.create({
-    baseURL: 'http://ftx.com/api', // バックエンドB のURL:port を指定する
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    responseType: 'json'
-});
-
-const axiosFiat = axiosBase.create({
-    baseURL: ' https://api.exchangeratesapi.io/', // バックエンドB のURL:port を指定する
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    responseType: 'json'
-});
+const exchange = initExchange(CCXT, undefined, 'ftx') as CCXT.Exchange;
 
 const symbols = ['BTC/USD', 'ETH/USD', 'XRP/USD'];
 
-(async () => {
-    const tickers = {}
-
-    const res = await exchange.fetchTickers(symbols);
-    const createTickers = (prices, target) => {
-        if (target == undefined) {
-            const tickers = {};
-            for (const symbol of symbols) {
-                tickers[symbol] = {
-                    ask: prices[symbol]["ask"],
-                    bid: prices[symbol]["bid"],
-                    cask: undefined,
-                    cbid: undefined
-                }
-            }
-            return tickers
-        }
-        for (const symbol of symbols) {
-            prices[symbol] = Object.defineProperties(target, {
-
-            })
-        }
+interface Prices {
+    symbol: {
+        ask: number;
+        bid: number;
+        info?: any;
+        [excessProperty: string]: any;
     }
+    [excessProperty: string]: any;
+}
+interface Tickers extends Prices {
+    symbol: {
+        ask: number;
+        bid: number;
+        cask: number | null;
+        cbid: number | null;
+        bask?: number | null;
+        bbid?: number | null;
+        [excessProperty: string]: any;
+    }
+}
 
-    const usdjpy = (await axiosFiat.get('latest?base=USD')).data.rates.JPY
+const bb = new CCXT['bitbank']();
+
+(async () => {
+
+    const res = await exchange.fetchTickers(symbols) as Prices;
+
+    const assignTickers = (prices: Prices, target: any): Tickers => {
+        const tickers = {};
+        for (const [key, value] of Object.entries(prices)) {
+            tickers[key] = {
+                ask: value["ask"],
+                bid: value["bid"],
+                cask: null,
+                cbid: null,
+            }
+        }
+        return Object.assign(target || {}, tickers)
+    }
+    const tickers = assignTickers(res, {});
+    console.log('tickers :>> ', tickers);
+    const usdjpy = (await axiosBase.get('https://api.exchangeratesapi.io/latest?base=USD')).data.rates.JPY
     console.log('usdjpy :>> ', usdjpy);
 
-    const convertBase = (tickers, baseRate) => {
-
+    const addCPrices = (tickers: Tickers, baseRate: number): Tickers => {
+        for (const [, value] of Object.entries(tickers)) {
+            value["cask"] = value["ask"] * baseRate;
+            value["cbid"] = value["bid"] * baseRate;
+        }
+        return tickers;
     }
+    const addBPrices = (tickers: Tickers, exchange:CCXT.Exchange): Tickers => {
+        try {
+            const res = await exchange.
+        }
+        for (const [, value] of Object.entries(tickers)) {
+            value["bask"] =
+                value["bbid"] = 
+        }
+        return tickers;
+    }
+    // const judgeOp = (tikers,level)=>{
+
+    // }
+    // const expectedReturn = ()=>{
+
+    // }
     // tickers.set(symbol, {
     //     ask: res[symbol]["ask"],
     //     bid: res[symbol]["bid"],
