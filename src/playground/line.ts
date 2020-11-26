@@ -1,20 +1,23 @@
 import { AxiosStatic } from 'axios';
-import CONFIG from '../config.json';
+import CONFIG from '../config.test.json';
 
-interface Message {
+export interface Message {
     type: 'text';
-    text: string
+    text: string;
 }
 
-export const pushMessage = async (axiosBase: AxiosStatic, message: Message, to = undefined) => {
+export const pushMessage = async (axiosBase: AxiosStatic, message: Message[], to = undefined) => {
     try {
-        await axiosBase.post('https://api.line.me/v2/bot/message/push', {
+        console.log('[Info]:Fired Line Notification');
+        await axiosBase({
+            method: 'POST',
+            url: 'https://api.line.me/v2/bot/message/push',
             headers: {
-                Authorization: CONFIG.LINE.BEAR_ACCESS_TOKEN
+                Authorization: `Bearer ${CONFIG.LINE.BEAR_ACCESS_TOKEN}`
             },
             data: {
                 to: to || CONFIG.LINE.USER_ID,
-                messages: [message]
+                messages: message
             }
         })
     } catch (e) {

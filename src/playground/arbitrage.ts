@@ -2,7 +2,7 @@ import CCXT from 'ccxt';
 import axiosBase from 'axios';
 const { initExchange } = require('../exchange');
 const exchange = initExchange(CCXT, undefined, 'ftx') as CCXT.Exchange;
-import { pushMessage } from './line';
+import { Message, pushMessage } from './line';
 import { Prices, Tickers, ArbitrageCalculator, ArbitrageSet } from './arbitrageInterfaces';
 import arbitrageConfig from './arbitrageConfig.json';
 
@@ -80,12 +80,39 @@ const bb = new CCXT['bitbank']();
         return tickers as ArbitrageSet
     }
 
-    const judgeOp = (basis = 1, dataset: ArbitrageSet): ArbitrageCalculator | null => {
-        let tmp //= { symbol: '', bestReturn: 0 };
+    const logger = async (dataset: ArbitrageSet) => {
+        const messages: Message[] = [];
+        for (const key in dataset) {
+            if (Object.prototype.hasOwnProperty.call(dataset, key)) {
+                const el = dataset[key];
+                const message = {
+                    type: "text",
+                    text: `
+    symbol > ${el.symbol}
+    裁定金額 ¥ > ${el.totalMoney().toFixed(1)}
+    取引量 > ${el.quantity.toFixed(2)}
+    割高 (bitbank比) % > ${el.diffPercent().toFixed(3)}
+    profit ¥ > ${el.profit().toFixed(1)}
+    expectedReturn % > ${el.expectedReturn().toFixed(3)}
+    送金手数料 ¥ > ${el.sendFeeJPY().toFixed(0)}
+    `
+                } as Message;
+                console.log(message['text']);
+                messages.push(message);
+            }
+        }
+        await pushMessage(axiosBase, messages)
+    }
+
+    const judgeOp = async (basis = 1, dataset: ArbitrageSet, log: Boolean): Promise<ArbitrageCalculator> => {
+        let tmp = { symbol: '', bestReturn: 0 };
         for (const [key, data] of Object.entries(dataset)) {
             tmp = (data.expectedReturn() > (tmp?.bestReturn || 0)) && { symbol: key, bestReturn: data.expectedReturn() }
         }
-        if (tmp.bestReturn > basis) return dataset[tmp.symbol];
+        if (tmp.bestReturn > basis) {
+            if (log) await logger({ symbol: dataset[tmp.symbol] })
+            return dataset[tmp.symbol]
+        };
         return null;
     }
 
@@ -93,28 +120,15 @@ const bb = new CCXT['bitbank']();
     await addCPrices(tickers, 'USD', 'JPY');
     tickers = await addBPrices(tickers, bb, symbols.map(el => el + '/JPY'), 'USD');
     const dataset = expectedReturn(tickers, arbitrageConfig);
-
-    for (const key in dataset) {
-        if (Object.prototype.hasOwnProperty.call(dataset, key)) {
-            const el = dataset[key];
-            console.log('symbol >', el.symbol);
-            console.log('裁定金額 ¥ >', el.totalMoney());
-            console.log('送金手数料 crypto建 >', el.sendFeeCrypto);
-            console.log('送金手数料 ¥ >', el.sendFeeJPY());
-            console.log('割高 % >', el.diffPercent());
-            console.log('profit ¥ >', el.profit());
-            console.log('expectedReturn % >', el.expectedReturn());
-        }
-    }
+    await logger(dataset);
+    const data = await judgeOp(1, dataset, true);
+    console.log('data :>> ', data);
 
 
-    const data = judgeOp(1, dataset);
-    const message = {
-        type: "text",
-        text: `${Date.now()}:${data.symbol}  ${data.totalMoney()} ${data.diffPercent()} ${data.expectedReturn()}`
-    }
 
-    pushMessage(axiosBase, message)
+    // const text = `${Date.now()}:${data.symbol}  ${data.totalMoney()} ${data.diffPercent()} ${data.expectedReturn()}`;
+
+
 
 
 })()
