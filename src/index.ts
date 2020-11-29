@@ -16,7 +16,7 @@ enum RequestType {
 }
 
 const createRequestBody = (ranges: string[]): any => {
-    const defaultRanges = ranges || ['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1']
+    const defaultRanges = ranges;
     const labelRequest = {
         spreadsheetId: CONFIG.SPREAD_SHEET.SHEET_ID,
         range: '',
@@ -102,20 +102,20 @@ const main = async () => {
 
     const appendRequest = requestBody.getRequestBody(RequestType.Append, holdings);
     const updateRequest = requestBody.getRequestBody(RequestType.Update, newlabel);
-    // await sheetAPI(append, appendRequest);
-    // await sheetAPI(batchUpdate, updateRequest);
+    await sheetAPI(append, appendRequest);
+    await sheetAPI(batchUpdate, updateRequest);
 
     // fetch close price from exchange
     const tickers = await exchange.fetchTickers(symbols);
     for (const symbol of symbols) {
-        const label = symbol.slice(0, 3);
+        const label = symbol.replace('/USD','');
         prices[label] = tickers[symbol]["close"];
     }
     const [, priceRow] = createWalletData(newlabel, prices);
     console.log('priceRow :>> ', priceRow);
 
     // append price info to the sheet 
-    // await sheetAPI(append, requestBody.getRequestBody(RequestType.Append, priceRow, priceRange));
+    await sheetAPI(append, requestBody.getRequestBody(RequestType.Append, priceRow, priceRange));
 
 }
 
