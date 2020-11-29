@@ -1,18 +1,13 @@
-const CCXT = require('ccxt');
-const { initExchange } = require('./exchange');
-const { sheetAPI, append, batchUpdate, get } = require('./sheet');
-const exchange = initExchange(CCXT, undefined, 'ftx');
-const { init } = require('./set');
-const { credentials, token } = require('./setting');
+import CCXT from 'ccxt';
+import { initExchange } from './exchange';
+import { sheetAPI, append, batchUpdate, get } from './sheet';
+import CONFIG from './config';
+const exchange = initExchange(CCXT, 'ftx');
 
-const spreadsheetId = process.env.spreadsheetId;
 const priceRange = 'Price!A1:1';
 const walletRanges = ['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1'];
-const symbols = ['BTC/USD', 'ETH/USD']
+const symbols = ['BTC/USD', 'ETH/USD', 'AMPL/USD'];
 
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-const TOKEN_PATH = 'token.json'
-const CREDENTIALS_PATH = 'credentials.json'
 
 enum RequestType {
     Append,
@@ -23,14 +18,14 @@ enum RequestType {
 const createRequestBody = (ranges: string[]): any => {
     const defaultRanges = ranges || ['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1']
     const labelRequest = {
-        spreadsheetId: spreadsheetId,
+        spreadsheetId: CONFIG.SPREAD_SHEET.SHEET_ID,
         range: '',
         majorDimension: "ROWS",
         valueRenderOption: 'FORMATTED_VALUE',
         dateTimeRenderOption: 'SERIAL_NUMBER'
     }
     const appendRequest = {
-        spreadsheetId: spreadsheetId,
+        spreadsheetId: CONFIG.SPREAD_SHEET.SHEET_ID,
         range: '',
         insertDataOption: 'INSERT_ROWS',
         valueInputOption: 'USER_ENTERED',
@@ -39,7 +34,7 @@ const createRequestBody = (ranges: string[]): any => {
         }
     }
     const updateRequest = {
-        spreadsheetId: spreadsheetId,
+        spreadsheetId: CONFIG.SPREAD_SHEET.SHEET_ID,
         resource: {
             valueInputOption: 'USER_ENTERED',
             data: {
@@ -125,8 +120,6 @@ const main = async () => {
 }
 
 try {
-    init(CREDENTIALS_PATH, credentials);
-    init(TOKEN_PATH, token);
     main()
 } catch (e) {
     console.log('UNIEXPECTED ERROR :>> ', e);

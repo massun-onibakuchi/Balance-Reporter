@@ -1,16 +1,15 @@
 import CCXT from 'ccxt';
 import axiosBase from 'axios';
-const { initExchange } = require('../exchange');
-const exchange = initExchange(CCXT, undefined, 'ftx') as CCXT.Exchange;
+import { initExchange } from '../exchange2';
 import { Message, pushMessage } from './line';
 import { Prices, Tickers, ArbitrageCalculator, ArbitrageSet } from './arbitrageInterfaces';
 import arbitrageConfig from './arbitrageConfig.json';
 
 const symbols = ['BTC', 'ETH', 'XRP'];
+const exchange = initExchange(CCXT,'ftx') as CCXT.Exchange;
 const bb = new CCXT['bitbank']();
 
 (async () => {
-    const res = await exchange.fetchTickers(symbols.map(el => el + '/USD')) as Prices;
 
     const assignTickers = (prices: Prices, target: any): Tickers => {
         const tickers = {};
@@ -106,29 +105,24 @@ const bb = new CCXT['bitbank']();
 
     const judgeOp = async (basis = 1, dataset: ArbitrageSet, log: Boolean): Promise<ArbitrageCalculator> => {
         let tmp = { symbol: '', bestReturn: 0 };
+        log && await logger(dataset);
         for (const [key, data] of Object.entries(dataset)) {
             tmp = (data.expectedReturn() > (tmp?.bestReturn || 0)) && { symbol: key, bestReturn: data.expectedReturn() }
         }
         if (tmp.bestReturn > basis) {
-            if (log) await logger({ symbol: dataset[tmp.symbol] })
+            await logger({ symbol: dataset[tmp.symbol] })
             return dataset[tmp.symbol]
         };
         return null;
     }
 
+    const res = await exchange.fetchTickers(symbols.map(el => el + '/USD')) as Prices;
     let tickers = assignTickers(res, {});
     await addCPrices(tickers, 'USD', 'JPY');
     tickers = await addBPrices(tickers, bb, symbols.map(el => el + '/JPY'), 'USD');
     const dataset = expectedReturn(tickers, arbitrageConfig);
-    await logger(dataset);
     const data = await judgeOp(1, dataset, true);
     console.log('data :>> ', data);
 
-
-
     // const text = `${Date.now()}:${data.symbol}  ${data.totalMoney()} ${data.diffPercent()} ${data.expectedReturn()}`;
-
-
-
-
 })()
