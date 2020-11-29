@@ -2,11 +2,11 @@
   "name": "crypto-ftx-accounts",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "script": "npx ts-node -r dotenv/config src/index.ts",
-    "start": "npx ts-node -r dotenv/config src/index.ts "
+    "start": "node dist/index.js "
   },
   "author": "",
   "license": "ISC",
