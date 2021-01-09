@@ -10,7 +10,7 @@ const config_1 = __importDefault(require("./config"));
 const exchange = exchange_1.initExchange(ccxt_1.default, 'ftx');
 const priceRange = 'Price!A1:1';
 const walletRanges = ['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1'];
-const symbols = ['BTC/USD', 'ETH/USD', 'AMPL/USD'];
+const symbols = ['BTC/USD', 'ETH/USD', 'AMPL/USD', 'XRP/USD', 'YFI/USD'];
 var RequestType;
 (function (RequestType) {
     RequestType[RequestType["Append"] = 0] = "Append";
