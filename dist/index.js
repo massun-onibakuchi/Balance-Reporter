@@ -10,7 +10,7 @@ const config_1 = __importDefault(require("./config"));
 const exchange = exchange_1.initExchange(ccxt_1.default, 'ftx');
 const priceRange = 'Price!A1:1';
 const walletRanges = ['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1'];
-const symbols = ['BTC/USD', 'ETH/USD', 'AMPL/USD', 'XRP/USD', 'FTT/USD', 'YFI/USD'];
+const symbols = ['BTC/USD', 'ETH/USD', 'AMPL/USD', 'XRP/USD', 'FTT/USD', 'YFI/USD', 'DOT-PERP', 'ATOM-PERP', 'USD/USDT'];
 var RequestType;
 (function (RequestType) {
     RequestType[RequestType["Append"] = 0] = "Append";
@@ -103,7 +103,7 @@ const main = async () => {
     // fetch close price from exchange
     const tickers = await exchange.fetchTickers(symbols);
     for (const symbol of symbols) {
-        const label = symbol.replace('/USD', '');
+        const label = symbol.replace('/USD', '').replace('USD/USDT', 'USDT');
         prices[label] = tickers[symbol]["close"];
     }
     const [, priceRow] = createWalletData(newlabel, prices);
