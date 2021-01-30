@@ -6,7 +6,26 @@ const exchange = initExchange(CCXT, 'ftx');
 
 const priceRange = 'Price!A1:1';
 const walletRanges = ['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1'];
-const symbols = ['BTC/USD', 'ETH/USD', 'XRP/USD', 'FTT/USD', 'YFI/USD', 'DOT-PERP', 'ATOM-PERP', 'USDT/USD', 'SUSHI/USD','UNI/USD'];
+const symbols = [
+    'BTC/USD',
+    'ETH/USD',
+    'XRP/USD',
+    'FTT/USD',
+    'YFI/USD',
+    'DOT-PERP',
+    'ATOM-PERP',
+    'USDT/USD',
+    'SUSHI/USD',
+    'UNI/USD',
+    'BTC-0326',
+    'BTC-0625',
+    'BTC-0924',
+    'BTC-1231',
+    'ETH-0326',
+    'ETH-0625',
+    'ETH-0924',
+    'ETH-1231',
+];
 
 enum RequestType {
     Append,
