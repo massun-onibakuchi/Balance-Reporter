@@ -10,7 +10,26 @@ const config_1 = __importDefault(require("./config"));
 const exchange = exchange_1.initExchange(ccxt_1.default, 'ftx');
 const priceRange = 'Price!A1:1';
 const walletRanges = ['Wallet!A1:1', 'Wallet!B1:1', 'Wallet!A1:1'];
-const symbols = ['BTC/USD', 'ETH/USD', 'XRP/USD', 'FTT/USD', 'YFI/USD', 'DOT-PERP', 'ATOM-PERP', 'USDT/USD', 'SUSHI/USD', 'UNI/USD'];
+const symbols = [
+    'BTC/USD',
+    'ETH/USD',
+    'XRP/USD',
+    'FTT/USD',
+    'YFI/USD',
+    'DOT-PERP',
+    'ATOM-PERP',
+    'USDT/USD',
+    'SUSHI/USD',
+    'UNI/USD',
+    'BTC-0326',
+    'BTC-0625',
+    'BTC-0924',
+    'BTC-1231',
+    'ETH-0326',
+    'ETH-0625',
+    'ETH-0924',
+    'ETH-1231',
+];
 var RequestType;
 (function (RequestType) {
     RequestType[RequestType["Append"] = 0] = "Append";
